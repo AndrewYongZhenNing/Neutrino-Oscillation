@@ -8,7 +8,7 @@
 #include "TFile.h"
 #include "TH1D.h"
 #include "TCanvas.h"
-#include "TGraph.h"
+// #include "TGraph.h"
 #include "TApplication.h"
 // #include "TPave.h"
 
@@ -23,53 +23,60 @@ int main(int argc, char * argv[] )
 {
 
   //allows Canvas to open in
-  // TApplication *app = new TApplication("app",0,0);
+  TApplication *app = new TApplication("app",0,0);
 
   //Read file:
+
+  TFile* fluxfile = new TFile("/home/yong/Neutrinos/Prob3++.20121225/T2Kflux2016/t2kflux_2016_sk_plus250kA.root");
+  TH1D* numu = (TH1D*)fluxfile->Get("enu_sk_numu");
+  TH1D* numu_osc = (TH1D*)numu->Clone("enu_sk_numu_osc");
+
 
   std::string line;
   std::ifstream dataFile("/home/yong/Neutrinos/Prob3++.20121225/T2Kflux2016/t2kflux_2016_sk_plus250kA.txt");
   int i;
-  int size = 0;
+  int size = 220;
 
-  if(dataFile.is_open()){ // this line is to get the size of data
-    i=0;
-    while(std::getline(dataFile,line)){
-
-      if(i>2){
-        size++; // gets the size of the data
-      }
-      i++;
-    }
-
-  }
+  // if(dataFile.is_open()){ // this line is to get the size of data
+  //   i=0;
+  //   cout << "Checkpoint 1" << endl;
+  //   while(std::getline(dataFile,line)){
+  //
+  //     if(i>2){
+  //       size++; // gets the size of the data
+  //     }
+  //     i++;
+  //   }
+  //
+  // }
+  //
 
   //initialise containers for the data
   double numu_col[size],numub_col[size],nue_col[size],nueb_col[size];
 
   if(dataFile.is_open()){ // fill containers with flux values
     i = 0; //tracks the row getline is on
-
+    cout << "Checkpoint 2" << endl;
     while(std::getline(dataFile,line)){
 
       std::stringstream ss(line);
-      // double data;
       ss.ignore(20,'\n'); // ignores the first 20 characters
 
       if(i>2){ // this if loop is to avoid the first three rows of the txt file
-
+        // cout << "Checkpoint 4" << endl;
         ss >> numu_col[i-3];
         ss >> numub_col[i-3];
         ss >> nue_col[i-3];
         ss >> nueb_col[i-3];
 
         // Un-comment below to view file in terminal
-        cout << "#" << i-2 << "\t" << numu_col << "\t" << numub_col << "\t" <<  nue_col << "\t" <<  nueb_col << endl;
+        // cout << "#" << i-2 << "\t" << numu_col[i-3] << "\t" << numub_col[i-3] << "\t" <<  nue_col[i-3] << "\t" <<  nueb_col[i-3] << endl;
 
       }
       i++;
     }
   }
+
 
 
    //set parameters
@@ -119,11 +126,11 @@ int main(int argc, char * argv[] )
 
      // numu -> nue
      prob = bNu->GetProb(2, 1);
-     numu_oflux[bin-1]= prob*numu_col[bin-1];
+     numu_oflux[bin-1]= (1./beta)*prob*numu_col[bin-1];
 
      //nue -> nue
      prob = bNu->GetProb(1, 1);
-     nue_oflux[bin-1]= prob*nue_col[bin-1];
+     nue_oflux[bin-1]= (1./beta)*prob*nue_col[bin-1];
 
      //Setting MNS matrix for anti-neutrinos
      bNu->SetMNS( Theta12,  Theta13, Theta23, dm2, DM2, delta , energy, kSquared, -1*kNuBar );
@@ -131,26 +138,32 @@ int main(int argc, char * argv[] )
 
      //numub -> nueb
      prob = bNu->GetProb(-2, -1);
-     numub_oflux[bin-1]= prob*numub_col[bin-1];
+     numub_oflux[bin-1]= beta*prob*numub_col[bin-1];
 
      //nueb -> nueb
      prob = bNu->GetProb(-1, -1);
-     nueb_oflux[bin-1]= prob*nueb_col[bin-1];
+     nueb_oflux[bin-1]= beta*prob*nueb_col[bin-1];
 
    }
 
 
   //PLOTTING
-  //  TCanvas *c1 = new TCanvas("c1","Canvas for P-PBar ",200,10,700,500);
-   //
-  //  TGraph* gr = new TGraph(size,p,pbar); // TGraph only takes in pointers/array
-  //  gr->SetTitle("P vs #bar{P} at E = 0.6GeV, #beta = 0.5;P(#mu^{-} #rightarrow e^{-});#bar{P}(#mu^{+} #rightarrow e^{+})");
-  //  gr->Draw();
-  //  c1->Update();
-   //
-  //  cout << "Application running..." << endl;
-  //  app->SetReturnFromRun(true);
-  //  app->Run(); // need this to give options for saving and zoom etc
+  TCanvas *c1 = new TCanvas("c1","Canvas for Oscillated Flux ",200,10,700,500);
+
+  TH1D* h1 = new TH1D("h", "Oscillated Flux vs Energy", 220, 0.,10.);
+  h1->GetXaxis()->SetTitle("Energy/GeV");
+  h1->GetYaxis()->SetTitle("Flux/cm^{2}");
+
+  for(int j = 0; j < size; j++){
+    h1->Fill(numu_oflux[j]);//fill each bin with oscillated flux values
+
+    //maybe can Fill() with weighting using original flux and probability as weighting?
+  }
+  h1->Draw();
+
+   cout << "Application running..." << endl;
+   app->SetReturnFromRun(true);
+   app->Run(); // need this to give options for saving and zoom etc
   //  app->Terminate();
 
   // TPave *pv = new TPave(0.7,0.9,0.9,0.7); // make it top right corner
