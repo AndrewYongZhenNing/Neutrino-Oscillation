@@ -3,14 +3,13 @@
 #include <fstream>
 
 #include "BargerPropagator.h"
-// #include "/T2Kflux2016/t2kflux_2016_sk_plus250kA.txt" // opens the txt data file
 
 #include "TFile.h"
 #include "TH1D.h"
+#include "THStack.h"
 #include "TCanvas.h"
-// #include "TGraph.h"
 #include "TApplication.h"
-// #include "TPave.h"
+
 
 #include <cstdlib>
 #include <ctime>
@@ -25,61 +24,8 @@ int main(int argc, char * argv[] )
   //allows Canvas to open in
   TApplication *app = new TApplication("app",0,0);
 
-  //Read file:
-
-  TFile* fluxfile = new TFile("/home/yong/Neutrinos/Prob3++.20121225/T2Kflux2016/t2kflux_2016_sk_plus250kA.root");
-  TH1D* numu = (TH1D*)fluxfile->Get("enu_sk_numu");
-  TH1D* numu_osc = (TH1D*)numu->Clone("enu_sk_numu_osc");
-
-
-  std::string line;
-  std::ifstream dataFile("/home/yong/Neutrinos/Prob3++.20121225/T2Kflux2016/t2kflux_2016_sk_plus250kA.txt");
-  int i;
-  int size = 220;
-
-  // if(dataFile.is_open()){ // this line is to get the size of data
-  //   i=0;
-  //   cout << "Checkpoint 1" << endl;
-  //   while(std::getline(dataFile,line)){
-  //
-  //     if(i>2){
-  //       size++; // gets the size of the data
-  //     }
-  //     i++;
-  //   }
-  //
-  // }
-  //
-
-  //initialise containers for the data
-  double numu_col[size],numub_col[size],nue_col[size],nueb_col[size];
-
-  if(dataFile.is_open()){ // fill containers with flux values
-    i = 0; //tracks the row getline is on
-    cout << "Checkpoint 2" << endl;
-    while(std::getline(dataFile,line)){
-
-      std::stringstream ss(line);
-      ss.ignore(20,'\n'); // ignores the first 20 characters
-
-      if(i>2){ // this if loop is to avoid the first three rows of the txt file
-        // cout << "Checkpoint 4" << endl;
-        ss >> numu_col[i-3];
-        ss >> numub_col[i-3];
-        ss >> nue_col[i-3];
-        ss >> nueb_col[i-3];
-
-        // Un-comment below to view file in terminal
-        // cout << "#" << i-2 << "\t" << numu_col[i-3] << "\t" << numub_col[i-3] << "\t" <<  nue_col[i-3] << "\t" <<  nueb_col[i-3] << endl;
-
-      }
-      i++;
-    }
-  }
-
-
-
    //set parameters
+   double energy = 0.6; //GeV (peak at 0.6GeV)
    bool kSquared  = true;   // using sin^2(x) variables?
    double DM2     =  2.4e-3; // delta m squared for mu <->tau
    double Theta23 =  0.5   ;
@@ -103,68 +49,116 @@ int main(int argc, char * argv[] )
    bNu = new BargerPropagator( );
    bNu->UseMassEigenstates( false );
 
-   //initialise histogram parameters;
-   Double_t numu_oflux[size],numub_oflux[size],nue_oflux[size],nueb_oflux[size];
+   //Load files:
+   TFile* fluxfile = new TFile("/home/yong/Neutrinos/Prob3++.20121225/T2Kflux2016/t2kflux_2016_plus250kA.root");
+
+   TH1D* numu = (TH1D*)fluxfile->Get("enu_sk_numu"); // creates the numu histogram
+   TH1D* numu_osc = (TH1D*)numu->Clone("enu_sk_numu_osc"); //creates a copy of the numu histogram
+
+   TH1D* nue = (TH1D*)fluxfile->Get("enu_sk_nue"); // creates the numu histogram
+   TH1D* nue_osc = (TH1D*)nue->Clone("enu_sk_nue_osc"); //creates a copy of the numu histogram
+
+   TH1D* numub = (TH1D*)fluxfile->Get("enu_sk_numub"); // creates the numu histogram
+   TH1D* numub_osc = (TH1D*)numu->Clone("enu_sk_numub_osc"); //creates a copy of the numu histogram
+
+   TH1D* nueb = (TH1D*)fluxfile->Get("enu_sk_nueb"); // creates the numu histogram
+   TH1D* nueb_osc = (TH1D*)nue->Clone("enu_sk_nueb_osc"); //creates a copy of the numu histogram
+
 
    int kNuBar = 1.0; // positive for neutrino, negative for antineutrino
    double BasePath = 295; //km
    double Density = 2.3; //g/cm^3
 
-   double energy; //GeV (peak at 0.6GeV)
+   //Setting MNS matrix for neutrinos
+   bNu->SetMNS( Theta12,  Theta13, Theta23, dm2, DM2, delta , energy, kSquared, kNuBar );
+   bNu->propagateLinear( 1*kNuBar, BasePath, Density ); // potentially not needed
+
+   double update_bin;
    double prob;
 
    //introduce pre-factor beta:
    double beta=1; // where 0<beta<2
 
-   for(int bin = 1; bin <=size; bin++){
+   // numu -> nue
+   prob = bNu->GetProb(2, 1);
 
-     energy = bin*0.05 - 2.5; // middle energy of each bin in GeV
+   for(int bin = 1; bin <=220; bin++){
+     update_bin = (1./beta)*prob*numu->GetBinContent(bin);
+     numu_osc->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
 
-     //Setting MNS matrix for neutrinos
-     bNu->SetMNS( Theta12,  Theta13, Theta23, dm2, DM2, delta , energy, kSquared, kNuBar );
-     bNu->propagateLinear( 1*kNuBar, BasePath, Density ); // potentially not needed
+   }
 
-     // numu -> nue
-     prob = bNu->GetProb(2, 1);
-     numu_oflux[bin-1]= (1./beta)*prob*numu_col[bin-1];
+   //nue -> nue
+   prob = bNu->GetProb(1,1);
 
-     //nue -> nue
-     prob = bNu->GetProb(1, 1);
-     nue_oflux[bin-1]= (1./beta)*prob*nue_col[bin-1];
+   for(int bin = 1; bin <=220; bin++){
+     update_bin = (1./beta)*prob*nue->GetBinContent(bin);
+     nue_osc->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
 
-     //Setting MNS matrix for anti-neutrinos
-     bNu->SetMNS( Theta12,  Theta13, Theta23, dm2, DM2, delta , energy, kSquared, -1*kNuBar );
-     bNu->propagateLinear( -1*kNuBar, BasePath, Density ); // potentially not needed
+   }
 
-     //numub -> nueb
-     prob = bNu->GetProb(-2, -1);
-     numub_oflux[bin-1]= beta*prob*numub_col[bin-1];
+   // Setting MNS matrix for anti-neutrinos
+   bNu->SetMNS( Theta12,  Theta13, Theta23, dm2, DM2, delta , energy, kSquared, -1*kNuBar );
+   bNu->propagateLinear( -1*kNuBar, BasePath, Density ); // potentially not needed
 
-     //nueb -> nueb
-     prob = bNu->GetProb(-1, -1);
-     nueb_oflux[bin-1]= beta*prob*nueb_col[bin-1];
+   //numub -> nueb
+   prob = bNu->GetProb(-2, -1);
+
+   for(int bin = 1; bin <=220; bin++){
+     update_bin = (1./beta)*prob*numub->GetBinContent(bin);
+     numub_osc->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
+
+   }
+
+   //nueb -> nueb
+   prob = bNu->GetProb(-1, -1);
+
+   for(int bin = 1; bin <=220; bin++){
+     update_bin = (1./beta)*prob*nueb->GetBinContent(bin);
+     nueb_osc->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
 
    }
 
 
+
+  //  double bin_val1,bin_val2;
+  //  for(int i =1; i<=220; i++){
+  //    bin_val1 = numu->GetBinContent(i);
+  //    bin_val2 = numu_osc->GetBinContent(i);
+  //    cout << numu_osc->GetBin(i) << "\t" << bin_val1 << "\t" << bin_val2<< endl;
+  //  }
+
+
   //PLOTTING
-  TCanvas *c1 = new TCanvas("c1","Canvas for Oscillated Flux ",200,10,700,500);
+  TCanvas *c1 = new TCanvas("c1","Canvas for Oscillated Flux ",200,10,900,600);
 
-  TH1D* h1 = new TH1D("h", "Oscillated Flux vs Energy", 220, 0.,10.);
-  h1->GetXaxis()->SetTitle("Energy/GeV");
-  h1->GetYaxis()->SetTitle("Flux/cm^{2}");
+  //create an overlay
+  THStack *hs = new THStack("hs","");
+  // hs->GetXaxis()->SetTitle("Energy/GeV");
+  // hs->GetYaxis()->SetTitle("Flux/cm^{2}");
+  numu_osc->SetFillColor(kRed);
+  numub_osc->SetFillColor(kBlue);
+  nue_osc->SetFillColor(kGreen);
+  nueb_osc->SetFillColor(42);
+  hs->Add(numu_osc);
+  hs->Add(numub_osc);
+  hs->Add(nue_osc);
+  hs->Add(nueb_osc);
 
-  for(int j = 0; j < size; j++){
-    h1->Fill(numu_oflux[j]);//fill each bin with oscillated flux values
+  c1->cd(1); hs->Draw("H");
+  // TH1D* h1 = new TH1D("h", "Oscillated Flux vs Energy", 220, 0.,10.);
+  // h1->GetXaxis()->SetTitle("Energy/GeV");
+  // h1->GetYaxis()->SetTitle("Flux/cm^{2}");
+  //
 
-    //maybe can Fill() with weighting using original flux and probability as weighting?
-  }
-  h1->Draw();
+  // h1->Draw();
+  // numu_osc->Draw("Hist"); // "Hist" fills the histogram
+  // numub_osc->Draw("Hist");
 
    cout << "Application running..." << endl;
    app->SetReturnFromRun(true);
    app->Run(); // need this to give options for saving and zoom etc
-  //  app->Terminate();
+   app->Terminate();
 
   // TPave *pv = new TPave(0.7,0.9,0.9,0.7); // make it top right corner
   // pv->("Oscillation Parameters");
