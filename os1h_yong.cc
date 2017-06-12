@@ -9,6 +9,7 @@
 #include "THStack.h"
 #include "TCanvas.h"
 #include "TApplication.h"
+#include "TLegend.h"
 
 
 #include <cstdlib>
@@ -50,19 +51,34 @@ int main(int argc, char * argv[] )
    bNu->UseMassEigenstates( false );
 
    //Load files:
-   TFile* fluxfile = new TFile("/home/yong/Neutrinos/Prob3++.20121225/T2Kflux2016/t2kflux_2016_plus250kA.root");
+   TFile* fluxfile_p = new TFile("/home/yong/Neutrinos/Prob3++.20121225/T2Kflux2016/t2kflux_2016_plus250kA.root");
+   TFile* fluxfile_m = new TFile("/home/yong/Neutrinos/Prob3++.20121225/T2Kflux2016/t2kflux_2016_minus250kA.root");
 
-   TH1D* numu = (TH1D*)fluxfile->Get("enu_sk_numu"); // creates the numu histogram
-   TH1D* numu_osc = (TH1D*)numu->Clone("enu_sk_numu_osc"); //creates a copy of the numu histogram
+   //plus250kA file:
+   TH1D* numu_p = (TH1D*)fluxfile_p->Get("enu_sk_numu"); // creates the numu histogram
+   TH1D* numu_osc_p = (TH1D*)numu_p->Clone("enu_sk_numu_osc"); //creates a copy of the numu histogram
 
-   TH1D* nue = (TH1D*)fluxfile->Get("enu_sk_nue"); // creates the numu histogram
-   TH1D* nue_osc = (TH1D*)nue->Clone("enu_sk_nue_osc"); //creates a copy of the numu histogram
+   TH1D* nue_p = (TH1D*)fluxfile_p->Get("enu_sk_nue"); // creates the numu histogram
+   TH1D* nue_osc_p = (TH1D*)nue_p->Clone("enu_sk_nue_osc"); //creates a copy of the numu histogram
 
-   TH1D* numub = (TH1D*)fluxfile->Get("enu_sk_numub"); // creates the numu histogram
-   TH1D* numub_osc = (TH1D*)numu->Clone("enu_sk_numub_osc"); //creates a copy of the numu histogram
+   TH1D* numub_p = (TH1D*)fluxfile_p->Get("enu_sk_numub"); // creates the numu histogram
+   TH1D* numub_osc_p = (TH1D*)numub_p->Clone("enu_sk_numub_osc"); //creates a copy of the numu histogram
 
-   TH1D* nueb = (TH1D*)fluxfile->Get("enu_sk_nueb"); // creates the numu histogram
-   TH1D* nueb_osc = (TH1D*)nue->Clone("enu_sk_nueb_osc"); //creates a copy of the numu histogram
+   TH1D* nueb_p = (TH1D*)fluxfile_p->Get("enu_sk_nueb"); // creates the numu histogram
+   TH1D* nueb_osc_p = (TH1D*)nueb_p->Clone("enu_sk_nueb_osc"); //creates a copy of the numu histogram
+
+   //minus250kA files:
+   TH1D* numu_m = (TH1D*)fluxfile_m->Get("enu_sk_numu"); // creates the numu histogram
+   TH1D* numu_osc_m = (TH1D*)numu_m->Clone("enu_sk_numu_osc"); //creates a copy of the numu histogram
+
+   TH1D* nue_m = (TH1D*)fluxfile_m->Get("enu_sk_nue"); // creates the numu histogram
+   TH1D* nue_osc_m = (TH1D*)nue_m->Clone("enu_sk_nue_osc"); //creates a copy of the numu histogram
+
+   TH1D* numub_m = (TH1D*)fluxfile_m->Get("enu_sk_numub"); // creates the numu histogram
+   TH1D* numub_osc_m = (TH1D*)numub_m->Clone("enu_sk_numub_osc"); //creates a copy of the numu histogram
+
+   TH1D* nueb_m = (TH1D*)fluxfile_m->Get("enu_sk_nueb"); // creates the numu histogram
+   TH1D* nueb_osc_m = (TH1D*)nueb_m->Clone("enu_sk_nueb_osc"); //creates a copy of the numu histogram
 
 
    int kNuBar = 1.0; // positive for neutrino, negative for antineutrino
@@ -83,8 +99,11 @@ int main(int argc, char * argv[] )
    prob = bNu->GetProb(2, 1);
 
    for(int bin = 1; bin <=220; bin++){
-     update_bin = (1./beta)*prob*numu->GetBinContent(bin);
-     numu_osc->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
+     update_bin = (1./beta)*prob*numu_p->GetBinContent(bin);
+     numu_osc_p->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
+
+     update_bin = (1./beta)*prob*numu_m->GetBinContent(bin);
+     numu_osc_m->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
 
    }
 
@@ -92,8 +111,11 @@ int main(int argc, char * argv[] )
    prob = bNu->GetProb(1,1);
 
    for(int bin = 1; bin <=220; bin++){
-     update_bin = (1./beta)*prob*nue->GetBinContent(bin);
-     nue_osc->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
+     update_bin = (1./beta)*prob*nue_p->GetBinContent(bin);
+     nue_osc_p->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
+
+     update_bin = (1./beta)*prob*nue_m->GetBinContent(bin);
+     nue_osc_m->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
 
    }
 
@@ -105,8 +127,11 @@ int main(int argc, char * argv[] )
    prob = bNu->GetProb(-2, -1);
 
    for(int bin = 1; bin <=220; bin++){
-     update_bin = (1./beta)*prob*numub->GetBinContent(bin);
-     numub_osc->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
+     update_bin = (1./beta)*prob*numub_p->GetBinContent(bin);
+     numub_osc_p->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
+
+     update_bin = (1./beta)*prob*numub_m->GetBinContent(bin);
+     numub_osc_m->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
 
    }
 
@@ -114,38 +139,60 @@ int main(int argc, char * argv[] )
    prob = bNu->GetProb(-1, -1);
 
    for(int bin = 1; bin <=220; bin++){
-     update_bin = (1./beta)*prob*nueb->GetBinContent(bin);
-     nueb_osc->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
+     update_bin = (1./beta)*prob*nueb_p->GetBinContent(bin);
+     nueb_osc_p->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
+
+     update_bin = (1./beta)*prob*nueb_m->GetBinContent(bin);
+     nueb_osc_m->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
 
    }
-
-
-
-  //  double bin_val1,bin_val2;
-  //  for(int i =1; i<=220; i++){
-  //    bin_val1 = numu->GetBinContent(i);
-  //    bin_val2 = numu_osc->GetBinContent(i);
-  //    cout << numu_osc->GetBin(i) << "\t" << bin_val1 << "\t" << bin_val2<< endl;
-  //  }
 
 
   //PLOTTING
   TCanvas *c1 = new TCanvas("c1","Canvas for Oscillated Flux ",200,10,900,600);
 
+
   //create an overlay
-  THStack *hs = new THStack("hs","");
+  THStack *hs = new THStack("hs","T2K Oscillated Flux minus250kA");
   // hs->GetXaxis()->SetTitle("Energy/GeV");
   // hs->GetYaxis()->SetTitle("Flux/cm^{2}");
-  numu_osc->SetFillColor(kRed);
-  numub_osc->SetFillColor(kBlue);
-  nue_osc->SetFillColor(kGreen);
-  nueb_osc->SetFillColor(42);
-  hs->Add(numu_osc);
-  hs->Add(numub_osc);
-  hs->Add(nue_osc);
-  hs->Add(nueb_osc);
 
-  c1->cd(1); hs->Draw("H");
+  //plus250kA plot:
+  // numu_osc_p->SetFillColor(kRed);
+  // numub_osc_p->SetFillColor(kBlue);
+  // nue_osc_p->SetFillColor(kGreen);
+  // nueb_osc_p->SetFillColor(42);
+  // hs->Add(numu_osc_p);
+  // hs->Add(numub_osc_p);
+  // hs->Add(nue_osc_p);
+  // hs->Add(nueb_osc_p);
+
+  //minus250kA plot:
+  numu_osc_m->SetFillColor(kRed);
+  numub_osc_m->SetFillColor(kBlue);
+  nue_osc_m->SetFillColor(kGreen);
+  nueb_osc_m->SetFillColor(42);
+  hs->Add(numub_osc_m); // adding histograms to HStack depends on order; in this case: the blue one )numub_osc_m appears at the bottom
+  hs->Add(numu_osc_m);
+  hs->Add(nue_osc_m);
+  hs->Add(nueb_osc_m);
+
+  c1->cd(1);
+  hs->Draw("H");
+  hs->GetXaxis()->SetTitle("Energy/GeV");
+  hs->GetXaxis()->SetRangeUser(0,1.2); //SetRangeUser sets the range of bins closest to the user defined boundaries: in this case the bin closest to 0GeV and 1.2GeV
+
+  // hs->GetYaxis()->SetTitle("the Y axis");
+  c1->Modified();
+
+
+  TLegend *legend = new TLegend(0.7,0.7,0.9,0.9);
+  // legend->SetHeader("Title","C");
+  legend->AddEntry(numu_osc_m,"#nu_{#mu} #rightarrow #nu_{e}","f");
+  legend->AddEntry(numub_osc_m,"#bar{#nu}_{#mu} #rightarrow #bar{#nu}_{e}","f");
+  legend->AddEntry(nue_osc_m,"#nu_{e} #rightarrow #nu_{e}","f");
+  legend->AddEntry(nueb_osc_m,"#bar{#nu}_{e} #rightarrow #bar{#nu}_{e}","f");
+  legend->Draw();
   // TH1D* h1 = new TH1D("h", "Oscillated Flux vs Energy", 220, 0.,10.);
   // h1->GetXaxis()->SetTitle("Energy/GeV");
   // h1->GetYaxis()->SetTitle("Flux/cm^{2}");
@@ -155,37 +202,12 @@ int main(int argc, char * argv[] )
   // numu_osc->Draw("Hist"); // "Hist" fills the histogram
   // numub_osc->Draw("Hist");
 
-   cout << "Application running..." << endl;
-   app->SetReturnFromRun(true);
-   app->Run(); // need this to give options for saving and zoom etc
-   app->Terminate();
-
-  // TPave *pv = new TPave(0.7,0.9,0.9,0.7); // make it top right corner
-  // pv->("Oscillation Parameters");
-  // pv->AddEntry("gr","#delta m^{2}: ", "");
-  // pv->AddEntry("gr","#delta m^{2}: ", "");
-  // pv->Draw();
-
-  // bool end;
-  // cout << "End? 1/0";
-  // cin>> end;
-  // app->Connect("TCanvas", "Closed()", "TApplication", app, "Terminate()");
+ cout << "Application running..." << endl;
+ app->SetReturnFromRun(true);
+ app->Run(); // need this to give options for saving and zoom etc
+ app->Terminate();
 
   cout << endl<<"Done Cowboy!" << endl;
 
   return 0;
 }
-
-// int main(int argc, char * argv[] ){
-//
-//   //allows Canvas to open in
-//   TApplication *app = new TApplication("app",0,0);
-//
-//   plotEllipse(0.6,1);
-//   plotEllipse(0.1,1);
-//
-//   cout << "Application running..." << endl;
-//   app->SetReturnFromRun(true);
-//   app->Run(); // need this to give options for saving and zoom etc
-//   app->Terminate();
-// }
