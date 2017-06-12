@@ -187,8 +187,8 @@ int main(int argc, char * argv[] )
   numub_osc_m->SetFillColor(kBlue);
   nue_osc_m->SetFillColor(kGreen);
   nueb_osc_m->SetFillColor(42);
-  hs_r->Add(numub_osc_m); // adding histograms to HStack depends on order; in this case: the blue one )numub_osc_m appears at the bottom
   hs_r->Add(numu_osc_m);
+  hs_r->Add(numub_osc_m); // adding histograms to HStack depends on order; in this case: the blue one )numub_osc_m appears at the bottom
   hs_r->Add(nue_osc_m);
   hs_r->Add(nueb_osc_m);
 
