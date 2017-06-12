@@ -26,7 +26,7 @@ int main(int argc, char * argv[] )
   TApplication *app = new TApplication("app",0,0);
 
    //set parameters
-   double energy = 0.6; //GeV (peak at 0.6GeV)
+   double energy; //GeV (peak at 0.6GeV)
    bool kSquared  = true;   // using sin^2(x) variables?
    double DM2     =  2.4e-3; // delta m squared for mu <->tau
    double Theta23 =  0.5   ;
@@ -85,20 +85,27 @@ int main(int argc, char * argv[] )
    double BasePath = 295; //km
    double Density = 2.3; //g/cm^3
 
-   //Setting MNS matrix for neutrinos
-   bNu->SetMNS( Theta12,  Theta13, Theta23, dm2, DM2, delta , energy, kSquared, kNuBar );
-   bNu->propagateLinear( 1*kNuBar, BasePath, Density ); // potentially not needed
-
    double update_bin;
    double prob;
 
    //introduce pre-factor beta:
-   double beta=1; // where 0<beta<2
+   double beta; // where 0<beta<2
+   cout << "Enter beta value:";
+   cin >> beta
 
-   // numu -> nue
-   prob = bNu->GetProb(2, 1);
+
+   // numu -> nue for plus250kA and minus250kA
 
    for(int bin = 1; bin <=220; bin++){
+
+     energy = numu_osc_p->GetXaxis()->GetBinCenter(bin); // for every bin, get the energy at centre of bin
+
+     //Setting MNS matrix for neutrinos
+     bNu->SetMNS( Theta12,  Theta13, Theta23, dm2, DM2, delta , energy, kSquared, kNuBar );
+     bNu->propagateLinear( 1*kNuBar, BasePath, Density ); // potentially not needed
+
+     prob = bNu->GetProb(2, 1);
+
      update_bin = (1./beta)*prob*numu_p->GetBinContent(bin);
      numu_osc_p->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
 
@@ -108,9 +115,17 @@ int main(int argc, char * argv[] )
    }
 
    //nue -> nue
-   prob = bNu->GetProb(1,1);
 
    for(int bin = 1; bin <=220; bin++){
+
+     energy = nue_osc_p->GetXaxis()->GetBinCenter(bin); // for every bin, get the energy at centre of bin
+
+     //Setting MNS matrix for neutrinos
+     bNu->SetMNS( Theta12,  Theta13, Theta23, dm2, DM2, delta , energy, kSquared, kNuBar );
+     bNu->propagateLinear( 1*kNuBar, BasePath, Density ); // potentially not needed
+
+     prob = bNu->GetProb(1, 1);
+
      update_bin = (1./beta)*prob*nue_p->GetBinContent(bin);
      nue_osc_p->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
 
@@ -119,30 +134,42 @@ int main(int argc, char * argv[] )
 
    }
 
-   // Setting MNS matrix for anti-neutrinos
-   bNu->SetMNS( Theta12,  Theta13, Theta23, dm2, DM2, delta , energy, kSquared, -1*kNuBar );
-   bNu->propagateLinear( -1*kNuBar, BasePath, Density ); // potentially not needed
-
    //numub -> nueb
-   prob = bNu->GetProb(-2, -1);
 
    for(int bin = 1; bin <=220; bin++){
-     update_bin = (1./beta)*prob*numub_p->GetBinContent(bin);
+
+     energy = numub_osc_p->GetXaxis()->GetBinCenter(bin); // for every bin, get the energy at centre of bin
+
+     // Setting MNS matrix for anti-neutrinos
+     bNu->SetMNS( Theta12,  Theta13, Theta23, dm2, DM2, delta , energy, kSquared, -1*kNuBar );
+     bNu->propagateLinear( -1*kNuBar, BasePath, Density ); // potentially not needed
+
+     prob = bNu->GetProb(-2, -1);
+
+     update_bin = (beta)*prob*numub_p->GetBinContent(bin);
      numub_osc_p->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
 
-     update_bin = (1./beta)*prob*numub_m->GetBinContent(bin);
+     update_bin = (beta)*prob*numub_m->GetBinContent(bin);
      numub_osc_m->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
 
    }
 
    //nueb -> nueb
-   prob = bNu->GetProb(-1, -1);
 
    for(int bin = 1; bin <=220; bin++){
-     update_bin = (1./beta)*prob*nueb_p->GetBinContent(bin);
+
+     energy = nueb_osc_p->GetXaxis()->GetBinCenter(bin); // for every bin, get the energy at centre of bin
+
+     // Setting MNS matrix for anti-neutrinos
+     bNu->SetMNS( Theta12,  Theta13, Theta23, dm2, DM2, delta , energy, kSquared, -1*kNuBar );
+     bNu->propagateLinear( -1*kNuBar, BasePath, Density ); // potentially not needed
+
+      prob = bNu->GetProb(-1, -1);
+
+     update_bin = (beta)*prob*nueb_p->GetBinContent(bin);
      nueb_osc_p->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
 
-     update_bin = (1./beta)*prob*nueb_m->GetBinContent(bin);
+     update_bin = (beta)*prob*nueb_m->GetBinContent(bin);
      nueb_osc_m->SetBinContent(bin,update_bin); // update the Clone copy of the histogram
 
    }
@@ -153,9 +180,11 @@ int main(int argc, char * argv[] )
   TCanvas *c1 = new TCanvas("c1","Canvas for Oscillated Flux ",2000,1000);
   c1->Divide(2,1);
 
+  int max_val; // to get the xaimum
+
   //create an overlay/stack of histograms
-  THStack *hs_l = new THStack("hs","T2K Oscillated Flux plus250kA");
-  THStack *hs_r = new THStack("hs","T2K Oscillated Flux minus250kA");
+  THStack *hs_l = new THStack("hs","T2K Oscillated Flux plus250kA, #beta = 1.6");
+  THStack *hs_r = new THStack("hs","T2K Oscillated Flux minus250kA, #beta = 1.6");
   TLegend *legend_l = new TLegend(0.7,0.7,0.9,0.9);
   TLegend *legend_r = new TLegend(0.7,0.7,0.9,0.9);
 
@@ -169,6 +198,7 @@ int main(int argc, char * argv[] )
   hs_l->Add(numub_osc_p);
   hs_l->Add(nue_osc_p);
   hs_l->Add(nueb_osc_p);
+  hs_l->SetMaximum(250000); // set minimum/maximum sets the scale of the y-axis
 
   hs_l->Draw("H");
   hs_l->GetXaxis()->SetTitle("Energy/GeV");
@@ -195,8 +225,19 @@ int main(int argc, char * argv[] )
   hs_r->Draw("H");
   hs_r->GetXaxis()->SetTitle("Energy/GeV");
   hs_r->GetXaxis()->SetRangeUser(0,1.25); //SetRangeUser sets the range of bins closest to the user defined boundaries: in this case the bin closest to 0GeV and 1.2GeV
-  hs_r->SetMaximum(70000); // set minimum/maximum sets the scale of the y-axis
+  hs_r->SetMaximum(250000); // set minimum/maximum sets the scale of the y-axis
 
+
+  // if(hs_r->GetMaximum() >= hs_l->GetMaximum()){ // if RHS histogram is larger than LHS histogram, set LHS y-axis to be same as RHS
+  //   max_val = hs_r->GetMaximum();
+  //   hs_l->SetMaximum(max_val);
+  //   cout << "Success" << endl;
+  // }
+  //
+  // else{ // if LHS histogram is larger than RHS, set RHS y-axis to be same as LHS
+  //   max_val = hs_l->GetMaximum();
+  //   hs_r->SetMaximum(max_val);
+  // }
   // c1->Modified();
 
   legend_r->AddEntry(numu_osc_m,"#nu_{#mu} #rightarrow #nu_{e}","f");
@@ -209,6 +250,7 @@ int main(int argc, char * argv[] )
   // numu_osc->Draw("Hist"); // "Hist" fills the histogram
   // numub_osc->Draw("Hist");
 
+ c1->Print("try.gif","gif++NN");
  cout << "Application running..." << endl;
  app->SetReturnFromRun(true);
  app->Run(); // need this to give options for saving and zoom etc
