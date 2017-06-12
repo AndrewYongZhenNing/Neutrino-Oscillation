@@ -149,54 +149,61 @@ int main(int argc, char * argv[] )
 
 
   //PLOTTING
-  TCanvas *c1 = new TCanvas("c1","Canvas for Oscillated Flux ",200,10,900,600);
+  // TCanvas *c1 = new TCanvas("c1","Canvas for Oscillated Flux ",200,10,900,600);
+  TCanvas *c1 = new TCanvas("c1","Canvas for Oscillated Flux ",2000,1000);
+  c1->Divide(2,1);
 
-
-  //create an overlay
-  THStack *hs = new THStack("hs","T2K Oscillated Flux minus250kA");
-  // hs->GetXaxis()->SetTitle("Energy/GeV");
-  // hs->GetYaxis()->SetTitle("Flux/cm^{2}");
+  //create an overlay/stack of histograms
+  THStack *hs_l = new THStack("hs","T2K Oscillated Flux plus250kA");
+  THStack *hs_r = new THStack("hs","T2K Oscillated Flux minus250kA");
+  TLegend *legend_l = new TLegend(0.7,0.7,0.9,0.9);
+  TLegend *legend_r = new TLegend(0.7,0.7,0.9,0.9);
 
   //plus250kA plot:
-  // numu_osc_p->SetFillColor(kRed);
-  // numub_osc_p->SetFillColor(kBlue);
-  // nue_osc_p->SetFillColor(kGreen);
-  // nueb_osc_p->SetFillColor(42);
-  // hs->Add(numu_osc_p);
-  // hs->Add(numub_osc_p);
-  // hs->Add(nue_osc_p);
-  // hs->Add(nueb_osc_p);
+  c1->cd(1);
+  numu_osc_p->SetFillColor(kRed);
+  numub_osc_p->SetFillColor(kBlue);
+  nue_osc_p->SetFillColor(kGreen);
+  nueb_osc_p->SetFillColor(42);
+  hs_l->Add(numu_osc_p);
+  hs_l->Add(numub_osc_p);
+  hs_l->Add(nue_osc_p);
+  hs_l->Add(nueb_osc_p);
+
+  hs_l->Draw("H");
+  hs_l->GetXaxis()->SetTitle("Energy/GeV");
+  hs_l->GetXaxis()->SetRangeUser(0,1.25); //SetRangeUser sets the range of bins closest to the user defined boundaries: in this case the bin closest to 0GeV and 1.2GeV
+
+  legend_l->AddEntry(numu_osc_p,"#nu_{#mu} #rightarrow #nu_{e}","f");
+  legend_l->AddEntry(numub_osc_p,"#bar{#nu}_{#mu} #rightarrow #bar{#nu}_{e}","f");
+  legend_l->AddEntry(nue_osc_p,"#nu_{e} #rightarrow #nu_{e}","f");
+  legend_l->AddEntry(nueb_osc_p,"#bar{#nu}_{e} #rightarrow #bar{#nu}_{e}","f");
+  legend_l->Draw();
+
 
   //minus250kA plot:
+  c1->cd(2);
   numu_osc_m->SetFillColor(kRed);
   numub_osc_m->SetFillColor(kBlue);
   nue_osc_m->SetFillColor(kGreen);
   nueb_osc_m->SetFillColor(42);
-  hs->Add(numub_osc_m); // adding histograms to HStack depends on order; in this case: the blue one )numub_osc_m appears at the bottom
-  hs->Add(numu_osc_m);
-  hs->Add(nue_osc_m);
-  hs->Add(nueb_osc_m);
+  hs_r->Add(numub_osc_m); // adding histograms to HStack depends on order; in this case: the blue one )numub_osc_m appears at the bottom
+  hs_r->Add(numu_osc_m);
+  hs_r->Add(nue_osc_m);
+  hs_r->Add(nueb_osc_m);
 
-  c1->cd(1);
-  hs->Draw("H");
-  hs->GetXaxis()->SetTitle("Energy/GeV");
-  hs->GetXaxis()->SetRangeUser(0,1.2); //SetRangeUser sets the range of bins closest to the user defined boundaries: in this case the bin closest to 0GeV and 1.2GeV
+  hs_r->Draw("H");
+  hs_r->GetXaxis()->SetTitle("Energy/GeV");
+  hs_r->GetXaxis()->SetRangeUser(0,1.25); //SetRangeUser sets the range of bins closest to the user defined boundaries: in this case the bin closest to 0GeV and 1.2GeV
+  hs_r->SetMaximum(70000); // set minimum/maximum sets the scale of the y-axis
 
-  // hs->GetYaxis()->SetTitle("the Y axis");
-  c1->Modified();
+  // c1->Modified();
 
-
-  TLegend *legend = new TLegend(0.7,0.7,0.9,0.9);
-  // legend->SetHeader("Title","C");
-  legend->AddEntry(numu_osc_m,"#nu_{#mu} #rightarrow #nu_{e}","f");
-  legend->AddEntry(numub_osc_m,"#bar{#nu}_{#mu} #rightarrow #bar{#nu}_{e}","f");
-  legend->AddEntry(nue_osc_m,"#nu_{e} #rightarrow #nu_{e}","f");
-  legend->AddEntry(nueb_osc_m,"#bar{#nu}_{e} #rightarrow #bar{#nu}_{e}","f");
-  legend->Draw();
-  // TH1D* h1 = new TH1D("h", "Oscillated Flux vs Energy", 220, 0.,10.);
-  // h1->GetXaxis()->SetTitle("Energy/GeV");
-  // h1->GetYaxis()->SetTitle("Flux/cm^{2}");
-  //
+  legend_r->AddEntry(numu_osc_m,"#nu_{#mu} #rightarrow #nu_{e}","f");
+  legend_r->AddEntry(numub_osc_m,"#bar{#nu}_{#mu} #rightarrow #bar{#nu}_{e}","f");
+  legend_r->AddEntry(nue_osc_m,"#nu_{e} #rightarrow #nu_{e}","f");
+  legend_r->AddEntry(nueb_osc_m,"#bar{#nu}_{e} #rightarrow #bar{#nu}_{e}","f");
+  legend_r->Draw();
 
   // h1->Draw();
   // numu_osc->Draw("Hist"); // "Hist" fills the histogram
